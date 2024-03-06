@@ -1,0 +1,68 @@
+-- Define variables
+local spawnLocation = Vector3.new(0, 10, 0) -- Initial spawn location for players
+local endGoalPosition = Vector3.new(0, 100, 0) -- Position of the end goal
+local obstacleSize = Vector3.new(4, 1, 4) -- Size of obstacles
+
+-- Function to create an obstacle
+local function createObstacle(position)
+    local obstacle = Instance.new("Part")
+    obstacle.Size = obstacleSize
+    obstacle.Position = position
+    obstacle.Anchored = true
+    obstacle.BrickColor = BrickColor.new("Bright red")
+    obstacle.CanCollide = true
+    obstacle.Parent = game.Workspace
+end
+
+-- Function to generate obstacles
+local function generateObstacles()
+    local obstaclePositions = {
+        Vector3.new(0, 15, 10),
+        Vector3.new(10, 15, 20),
+        Vector3.new(-10, 15, 20),
+        -- Add more obstacle positions as needed
+    }
+    for _, position in ipairs(obstaclePositions) do
+        createObstacle(position)
+    end
+end
+
+-- Function to check if player reached the end goal
+local function checkEndGoal(player)
+    local character = player.Character
+    if character then
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        local distance = (humanoidRootPart.Position - endGoalPosition).Magnitude
+        if distance < 5 then
+            print(player.Name .. " reached the end goal!")
+            -- You can add more actions here, such as giving rewards
+        end
+    end
+end
+
+-- Function to handle player joining
+local function onPlayerAdded(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(spawnLocation)
+end
+
+-- Connect playerAdded event
+game.Players.PlayerAdded:Connect(onPlayerAdded)
+
+-- Generate obstacles
+generateObstacles()
+
+-- Connect touched event for end goal
+local endGoal = Instance.new("Part")
+endGoal.Size = Vector3.new(10, 2, 10)
+endGoal.Position = endGoalPosition
+endGoal.Anchored = true
+endGoal.CanCollide = false
+endGoal.Parent = game.Workspace
+
+endGoal.Touched:Connect(function(hit)
+    local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+    if player then
+        checkEndGoal(player)
+    end
+end)
